@@ -1,6 +1,6 @@
 package models;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * Representa um registro individual de faturamento,
@@ -9,10 +9,10 @@ import java.time.LocalDate;
 public class  RegistroFaturamento {
     private final String placa;
     private final double valorPago;
-    private final LocalDate dataSaida;
+    private final LocalDateTime dataSaida;
     private final TipoVeiculo tipo;
 
-    public RegistroFaturamento(String placa, double valorPago, LocalDate dataSaida, TipoVeiculo tipo) {
+    public RegistroFaturamento(String placa, double valorPago, LocalDateTime dataSaida, TipoVeiculo tipo) {
         this.placa = placa;
         this.valorPago = valorPago;
         this.dataSaida = dataSaida;
@@ -27,7 +27,7 @@ public class  RegistroFaturamento {
         return valorPago;
     }
 
-    public LocalDate getDataSaida() {
+    public LocalDateTime getDataSaida() {
         return dataSaida;
     }
 
