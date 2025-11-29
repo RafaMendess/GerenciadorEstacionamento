@@ -1,9 +1,8 @@
 import models.Estacionamento;
-import services.EstacionamentoController;
+import controllers.EstacionamentoController;
 import view.Menu;
 
 import java.time.LocalDateTime;
-import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {

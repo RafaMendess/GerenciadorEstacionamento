@@ -1,6 +1,6 @@
 package models;
 
-import services.FaturamentoController;
+import controllers.FaturamentoController;
 
 import java.time.LocalDateTime;
 import java.util.*;

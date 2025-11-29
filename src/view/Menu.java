@@ -1,9 +1,8 @@
 package view;
 
-import models.Faturamento;
 import models.TipoVeiculo;
 import models.Vaga;
-import services.FaturamentoController;
+import controllers.FaturamentoController;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
