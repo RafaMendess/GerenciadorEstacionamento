@@ -1,15 +1,31 @@
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
+import models.Estacionamento;
+import services.EstacionamentoController;
+import view.Menu;
+
+import java.time.LocalDateTime;
+import java.util.Scanner;
+
 public class Main {
     public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
+        Menu menu = new Menu();
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
+        System.out.println("Quantas vagas o estacionamento terá hoje?");
+        int capacidade = menu.lerInteiro();
+
+        System.out.print("Deseja usar data/hora atual como referência de início do dia? ");
+        boolean usarAgora = menu.confirmarAcao("");
+
+        LocalDateTime inicioDia;
+        if (usarAgora) {
+            inicioDia = LocalDateTime.now();
+        } else {
+            System.out.print("Digite data e hora de início (dd/MM/yyyy HH:mm): ");
+            inicioDia = menu.solicitarDataManualOuAutomatica();
         }
+
+        Estacionamento estacionamento = new Estacionamento(capacidade, inicioDia);
+        EstacionamentoController service = new EstacionamentoController(estacionamento, menu);
+
+        service.iniciarServico();
     }
 }

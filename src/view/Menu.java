@@ -1,3 +1,10 @@
+package view;
+
+import models.Faturamento;
+import models.TipoVeiculo;
+import models.Vaga;
+import services.FaturamentoController;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -6,11 +13,9 @@ import java.util.List;
 import java.util.Scanner;
 
 public class Menu {
-    private final Scanner scanner;
-
-    public Menu() {
-        this.scanner = new Scanner(System.in);
-    }
+    private final Scanner scanner = new Scanner(System.in);
+    private final DateTimeFormatter dataHoraFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private final DateTimeFormatter dataFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     public void exibirMenuPrincipal() {
         System.out.println("\n=== SISTEMA DE ESTACIONAMENTO ===");
@@ -25,33 +30,36 @@ public class Menu {
         System.out.print("Escolha uma opção: ");
     }
 
-    public void exibirSubmenuListarVeiculos(Estacionamento estacionamento) {
-        System.out.println("\n=== VEÍCULOS ESTACIONADOS ===");
-        List<Vaga> vagas = estacionamento.listarVagas();
-        boolean encontrouVeiculos = false;
-
-        for (Vaga vaga : vagas) {
-            if (!vaga.estaLivre()) {
-                System.out.println("Vaga " + vaga.getId() + ": " + vaga.getVeiculo());
-                encontrouVeiculos = true;
-            }
+    /** Lê opção do menu de forma segura (retorna -1 se inválido) */
+    public int lerOpcao() {
+        String line = scanner.nextLine();
+        try {
+            return Integer.parseInt(line.trim());
+        } catch (NumberFormatException e) {
+            return -1;
         }
-
-        if (!encontrouVeiculos) {
-            System.out.println("Nenhum veículo estacionado no momento.");
-        }
-
-        System.out.println("Total: " + estacionamento.getVagasOcupadas() + " veículo(s)");
     }
 
-    public void exibirSubmenuFaturamento(Faturamento faturamento) {
+    public void exibirSubmenuListarVeiculos(List<Vaga> vagas) {
+        System.out.println("\n=== VEÍCULOS ESTACIONADOS ===");
+        boolean encontrou = false;
+        for (Vaga vaga : vagas) {
+            if (vaga.isOcupada()) {
+                System.out.println("Vaga " + vaga.getId() + ": " + vaga.getVeiculo());
+                encontrou = true;
+            }
+        }
+        if (!encontrou) System.out.println("Nenhum veículo estacionado no momento.");
+    }
+
+    public void exibirSubmenuFaturamento(FaturamentoController faturamentoController) {
         System.out.println("\n=== RELATÓRIO DE FATURAMENTO ===");
-        System.out.printf("Total geral arrecadado: R$ %.2f%n", faturamento.getTotalGeral());
+        System.out.printf("Total geral arrecadado: R$ %.2f%n", faturamentoController.getTotalGeral());
 
         System.out.println("\nFaturamento por dia:");
-        faturamento.getFaturamentoPorDia().forEach((data, valor) -> {
-            System.out.printf("  %s: R$ %.2f%n", data.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), valor);
-        });
+        faturamentoController.getFaturamentoPorDia().forEach((data, valor) ->
+                System.out.printf("  %s: R$ %.2f%n", data.format(dataFmt), valor)
+        );
 
         System.out.print("\nDeseja ver detalhes de um dia específico? (s/n): ");
         String resposta = scanner.nextLine();
@@ -59,8 +67,8 @@ public class Menu {
             System.out.print("Digite a data (dd/MM/yyyy): ");
             String dataStr = scanner.nextLine();
             try {
-                LocalDate data = LocalDate.parse(dataStr, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-                List<RegistroFaturamento> registros = faturamento.getFaturamentoDetalhado(data);
+                LocalDate data = LocalDate.parse(dataStr, dataFmt);
+                var registros = faturamentoController.getFaturamentoDetalhado(data);
                 if (registros.isEmpty()) {
                     System.out.println("Nenhum registro para esta data.");
                 } else {
@@ -76,15 +84,13 @@ public class Menu {
     public LocalDateTime solicitarDataManualOuAutomatica() {
         System.out.print("Usar hora atual? (s/n): ");
         String resposta = scanner.nextLine();
-
         if (resposta.equalsIgnoreCase("s")) {
             return LocalDateTime.now();
         } else {
             System.out.print("Digite data e hora (dd/MM/yyyy HH:mm): ");
             String dataHoraStr = scanner.nextLine();
             try {
-                return LocalDateTime.parse(dataHoraStr,
-                        DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+                return LocalDateTime.parse(dataHoraStr, dataHoraFmt);
             } catch (DateTimeParseException e) {
                 System.out.println("Data/hora inválida! Usando hora atual.");
                 return LocalDateTime.now();
@@ -93,14 +99,16 @@ public class Menu {
     }
 
     public boolean confirmarAcao(String mensagem) {
-        System.out.print(mensagem + " (s/n): ");
+        if (mensagem != null && !mensagem.isBlank()) System.out.print(mensagem + " (s/n): ");
+        else System.out.print("(s/n): ");
         String resposta = scanner.nextLine();
         return resposta.equalsIgnoreCase("s");
     }
 
     public String solicitarPlaca() {
         System.out.print("Digite a placa do veículo: ");
-        return scanner.nextLine().toUpperCase().replaceAll("[^A-Z0-9]", "");
+        String raw = scanner.nextLine().toUpperCase().replaceAll("[^A-Z0-9]", "");
+        return raw;
     }
 
     public TipoVeiculo solicitarTipoVeiculo() {
@@ -110,7 +118,6 @@ public class Menu {
             System.out.println("2. Moto");
             System.out.print("Escolha: ");
             String opcao = scanner.nextLine();
-
             switch (opcao) {
                 case "1": return TipoVeiculo.CARRO;
                 case "2": return TipoVeiculo.MOTO;
@@ -126,5 +133,16 @@ public class Menu {
     public void pausar() {
         System.out.print("\nPressione Enter para continuar...");
         scanner.nextLine();
+    }
+
+    public int lerInteiro() {
+        while (true) {
+            String line = scanner.nextLine().trim();
+            try {
+                return Integer.parseInt(line);
+            } catch (NumberFormatException e) {
+                System.out.print("Número inválido. Tente novamente: ");
+            }
+        }
     }
 }
