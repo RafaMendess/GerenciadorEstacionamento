@@ -11,14 +11,14 @@ public class Estacionamento {
     private final FaturamentoController faturamentoController;
     private final LocalDateTime inicioDia;
 
-    public Estacionamento(int capacidadeMaxima, LocalDateTime inicioDia) {
+    public Estacionamento(int capacidadeMaxima, LocalDateTime inicioDia, FaturamentoController faturamentoController) {
         if (capacidadeMaxima <= 0) throw new IllegalArgumentException("Capacidade deve ser positiva.");
         this.vagas = new ArrayList<>();
         for (int i = 1; i <= capacidadeMaxima; i++) {
             vagas.add(new Vaga(i));
         }
         this.filaDeEspera = new LinkedList<>();
-        this.faturamentoController = new FaturamentoController();
+        this.faturamentoController = faturamentoController;
         this.inicioDia = inicioDia;
     }
 
@@ -66,10 +66,17 @@ public class Estacionamento {
             Vaga vaga = vagaOcupada.get();
             Veiculo veiculo = vaga.getVeiculo();
 
-            LocalDateTime horaSaida = LocalDateTime.now();
-            veiculo.setDataSaida(horaSaida);
+            // Se o controller/menu já setou a data de saída (quando você perguntou ao usuário), use-a.
+            // Caso contrário, cai para o tempo atual do sistema.
+            LocalDateTime horaSaida = veiculo.getDataSaida();
+            if (horaSaida == null) {
+                horaSaida = LocalDateTime.now();
+                veiculo.setDataSaida(horaSaida); // garante consistência se horaSaida foi calculada aqui
+            }
+
             double valor = veiculo.calcularValorTotal();
 
+            // registra faturamento usando a data de saída real do veículo
             faturamentoController.registrarSaida(horaSaida, veiculo, valor);
 
             vaga.liberar();
@@ -77,6 +84,8 @@ public class Estacionamento {
             // Atende fila: puxa próximo veículo para a vaga recém-liberada e atualiza dataEntrada para agora
             if (!filaDeEspera.isEmpty()) {
                 Veiculo proximo = filaDeEspera.poll();
+                // se você quiser alinhar o "dia" do novo veículo à data do início do turno,
+                // podemos ajustar aqui; por enquanto usamos now() para registrar entrada real
                 proximo.setDataEntrada(LocalDateTime.now());
                 vaga.ocupar(proximo);
             }

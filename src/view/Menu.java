@@ -50,35 +50,40 @@ public class Menu {
         }
         if (!encontrou) System.out.println("Nenhum veículo estacionado no momento.");
     }
-
-    public void exibirSubmenuFaturamento(FaturamentoController faturamentoController) {
+    public void exibirSubmenuFaturamento(FaturamentoController faturamento, LocalDate diaAtual) {
         System.out.println("\n=== RELATÓRIO DE FATURAMENTO ===");
-        System.out.printf("Total geral arrecadado: R$ %.2f%n", faturamentoController.getTotalGeral());
+        System.out.println("1. Ver faturamento do dia atual");
+        System.out.println("2. Pesquisar faturamento por data");
+        System.out.println("3. Ver total geral");
+        System.out.println("0. Voltar");
+        System.out.print("Escolha uma opção: ");
 
-        System.out.println("\nFaturamento por dia:");
-        faturamentoController.getFaturamentoPorDia().forEach((data, valor) ->
-                System.out.printf("  %s: R$ %.2f%n", data.format(dataFmt), valor)
-        );
+        int opcao = lerOpcao();
 
-        System.out.print("\nDeseja ver detalhes de um dia específico? (s/n): ");
-        String resposta = scanner.nextLine();
-        if (resposta.equalsIgnoreCase("s")) {
-            System.out.print("Digite a data (dd/MM/yyyy): ");
-            String dataStr = scanner.nextLine();
-            try {
-                LocalDate data = LocalDate.parse(dataStr, dataFmt);
-                var registros = faturamentoController.getFaturamentoDetalhado(data);
-                if (registros.isEmpty()) {
-                    System.out.println("Nenhum registro para esta data.");
-                } else {
-                    System.out.println("\nDetalhes do dia " + dataStr + ":");
-                    registros.forEach(System.out::println);
-                }
-            } catch (DateTimeParseException e) {
-                System.out.println("Data inválida!");
+        switch (opcao) {
+            case 1 -> {
+                // usa o dia atual do turno (passado pelo EstacionamentoController)
+                System.out.println(faturamento.gerarRelatorio(diaAtual));
             }
+            case 2 -> pesquisarFaturamentoPorData(faturamento);
+            case 3 -> System.out.println("Total geral acumulado: R$ " + faturamento.getTotalGeral());
+            case 0 -> {}
+            default -> System.out.println("Opção inválida!");
         }
     }
+
+    private void pesquisarFaturamentoPorData(FaturamentoController faturamento) {
+        System.out.print("Digite a data (dd/MM/yyyy): ");
+        String texto = scanner.nextLine();
+
+        try {
+            LocalDate data = LocalDate.parse(texto, dataFmt);
+            System.out.println(faturamento.gerarRelatorio(data));
+        } catch (DateTimeParseException e) {
+            System.out.println("Data inválida.");
+        }
+    }
+
 
     public LocalDateTime solicitarDataManualOuAutomatica() {
         System.out.print("Usar hora atual? (s/n): ");

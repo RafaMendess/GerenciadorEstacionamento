@@ -40,7 +40,7 @@ public class EstacionamentoController {
             case 3 -> mostrarVagasDisponiveis();
             case 4 -> menu.exibirSubmenuListarVeiculos(estacionamento.listarVagas());
             case 5 -> pesquisarVeiculo();
-            case 6 -> menu.exibirSubmenuFaturamento(estacionamento.getFaturamento());
+            case 6 -> menu.exibirSubmenuFaturamento(estacionamento.getFaturamento(), estacionamento.getInicioDia().toLocalDate());
             case 7 -> mostrarFilaEspera();
             case 0 -> menu.mostrarMensagem("Encerrando sistema...");
             default -> menu.mostrarMensagem("Opção inválida!");
@@ -68,7 +68,7 @@ public class EstacionamentoController {
         Veiculo veiculo = estacionamento.buscarPorPlaca(placa);
 
         if (veiculo != null) {
-            veiculo.setDataSaida(LocalDateTime.now());
+            veiculo.setDataSaida(menu.solicitarDataManualOuAutomatica());
             double valor = veiculo.calcularValorTotal();
             boolean confirmar = menu.confirmarAcao("Valor a pagar: R$ " + String.format("%.2f", valor) + ". Confirmar saída?");
             if (confirmar) {
