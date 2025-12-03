@@ -15,16 +15,7 @@ public class Main {
             System.out.println("Quantas vagas o estacionamento terá hoje?");
             int capacidade = menu.lerInteiro();
 
-            System.out.print("Deseja usar data/hora atual como referência de início do dia? ");
-            boolean usarAgora = menu.confirmarAcao("");
-
-            LocalDateTime inicioDia;
-            if (usarAgora) {
-                inicioDia = LocalDateTime.now();
-            } else {
-                System.out.print("Digite data e hora de início (dd/MM/yyyy HH:mm): ");
-                inicioDia = menu.solicitarDataManualOuAutomatica();
-            }
+            LocalDateTime inicioDia= menu.solicitarDataManualOuAutomatica();
 
             Estacionamento estacionamento = new Estacionamento(capacidade, inicioDia, faturamentoController);
             EstacionamentoController service = new EstacionamentoController(estacionamento, menu);
